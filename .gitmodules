@@ -1,0 +1,9 @@
+[submodule "optaload"]
+	path = optaload
+	url = git@zx.lc:optaload.git
+[submodule "postgresql"]
+	path = postgresql
+	url = git://git.postgresql.org/git/postgresql.git
+[submodule "neo4j"]
+	path = neo4j
+	url = git@github.com:neo4j/neo4j.git
