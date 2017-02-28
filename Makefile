@@ -1,13 +1,19 @@
 VPATH = src
 P = out
 PGDIR = build/postgres
+PGDATA = out/data
+PGPORT = 40576
+PMADIR = perf-map-agent
+DATADIR = optadata
+PY = python3
 
 # Where the tarballs are
 NEOTARDIR = neo4j/packaging/standalone/target
 # Some arbitrary file that changes when neo is built
 NEOTARGET = $P/lib/neo4j-common-*.jar
 
-.PHONY: all clean distclean neo4j-version postgres neo4j
+.PHONY: all clean distclean neo4j-version postgres \
+	neo4j benchmark pgpopulate neopopulate
 
 all: postgres $(NEOTARGET)
 
@@ -29,13 +35,28 @@ neo4j-version:
 	fi
 
 $(NEOTARGET): .neo4j-version | $P
-	cd neo4j && mvn clean install -DminimalBuild -DskipTests
+	cd neo4j && mvn clean install -U -DminimalBuild -DskipTests
 	tar xf $(NEOTARDIR)/neo4j-community-*-unix.tar.gz --strip 1 -C $|
 
 neo4j: $(NEOTARGET)
 
-# TODO: POPULATE
-# TODO: RUN BENCHMARKS
+$(DATADIR):
+	rsync -rP toppfotball@ssh.domeneshop.no:www/Opta/ $@
+
+pgpopulate: | optadata
+	$P/bin/initdb
+	$P/bin/pg_ctl start
+	$P/bin/createdb opta
+	$(PY) optaload/pgload.py # Populate Postgres
+	$P/bin/pg_ctl stop
+
+tmp/csvgraph: | optadata
+	$(PY) optaload/read_files.py $(DATADIR)
+neopopulate: tmp/csvgraph $(NEOTARGET)
+	NEO4J_DIR=$P optaload/import_csv.sh	# Populate Neo4j
+
+benchmark:
+	#TODO
 
 clean:
 	$(RM) -r build
