@@ -14,7 +14,7 @@ NEOTARGET = $P/lib/neo4j-common-*.jar
 .PHONY: all clean distclean neo4j-version postgres \
 	neo4j benchmark pgpopulate neopopulate
 
-all: postgres $(NEOTARGET)
+all: pgpopulate neopopulate #postgres $(NEOTARGET)
 
 $P $(PGDIR):
 	mkdir -p $@
@@ -42,7 +42,7 @@ neo4j: $(NEOTARGET)
 $(DATADIR):
 	rsync -rP toppfotball@ssh.domeneshop.no:www/Opta/ $@
 
-pgpopulate: | optadata
+pgpopulate: | optadata postgres
 	$P/bin/initdb
 	$P/bin/pg_ctl start
 	$P/bin/createdb opta
