@@ -22,7 +22,7 @@ $P $(PGDIR):
 $(PGDIR)/GNUMakefile: postgresql/configure | $(PGDIR)
 	cd $| && $(CURDIR)/$< --prefix=$(CURDIR)/$P
 
-postgres: $(PGDIR)/Makefile | $P
+postgres: $(PGDIR)/GNUMakefile | $P
 	$(MAKE) -C $(<D) install
 
 # Use git HEAD to determine if we should build Neo4j
