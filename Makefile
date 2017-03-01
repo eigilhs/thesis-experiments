@@ -3,7 +3,6 @@ P = out
 PGDIR = build/postgres
 PGDATA = out/data
 PGPORT = 40576
-PMADIR = perf-map-agent
 DATADIR = optadata
 PY = python3
 
