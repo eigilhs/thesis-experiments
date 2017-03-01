@@ -14,7 +14,7 @@ NEOTARGET = $P/lib/neo4j-common-*.jar
 .PHONY: all clean distclean neo4j-version postgres \
 	neo4j benchmark pgpopulate neopopulate
 
-all: pgpopulate neopopulate #postgres $(NEOTARGET)
+all: pgpopulate neopopulate
 
 $P $(PGDIR):
 	mkdir -p $@
