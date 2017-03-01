@@ -1,8 +1,8 @@
 VPATH = src
 P = out
 PGDIR = build/postgres
-PGDATA = out/data
-PGPORT = 40576
+export PGDATA = out/data/postgres
+export PGPORT = 40576
 DATADIR = optadata
 PY = python3
 
@@ -45,6 +45,7 @@ $(DATADIR):
 pgpopulate: | optadata postgres
 	$P/bin/initdb
 	$P/bin/pg_ctl start
+	sleep 3
 	$P/bin/createdb opta
 	$(PY) optaload/pgload.py # Populate Postgres
 	$P/bin/pg_ctl stop
