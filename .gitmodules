@@ -1,6 +1,3 @@
-[submodule "optaload"]
-	path = optaload
-	url = git@zx.lc:optaload.git
 [submodule "postgresql"]
 	path = postgresql
 	url = git://git.postgresql.org/git/postgresql.git
