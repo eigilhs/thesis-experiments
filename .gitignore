@@ -2,3 +2,4 @@
 out
 build
 optadata
+__pycache__/

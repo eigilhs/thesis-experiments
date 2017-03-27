@@ -13,7 +13,8 @@ NEOTARDIR = neo4j/packaging/standalone/target
 NEOTARGET = $P/lib/neo4j-common-*.jar
 
 .PHONY: all clean distclean neo4j-version postgres \
-	neo4j benchmark pgpopulate neopopulate pgstart pgstop
+	neo4j benchmark pgpopulate neopopulate pgstart pgstop \
+	clearcache
 
 all: pgpopulate neopopulate
 
@@ -43,32 +44,41 @@ neo4j: $(NEOTARGET)
 $(DATADIR):
 	rsync -rP toppfotball@ssh.domeneshop.no:www/Opta/ $@
 
+$P/specs.tex: getspecs.py
+	./$< > $@
+
 pgstart:
 	$P/bin/pg_ctl start
 pgstop:
 	$P/bin/pg_ctl stop
 
-$P/pgstat%: src/query%.sql
-	paste -s -d ' ' $< | perf stat -r 10 -ddd -o $@ $P/bin/postgres --single opta
-$P/pgtime%: src/query%.sql
+$P/pgstat%: src/postgres/queries/query%.sql
+	perf stat -r 10 -ddd -o $@ -- sh -c "paste -s -d ' ' $< | $P/bin/postgres --single opta"
+$P/pgtime%: src/postgres/queries/query%.sql
 	paste -s -d ' ' $< | $(GTIME) -v $P/bin/postgres --single opta 2> $@
+
+# $P/pgstrace%: src/query%.sql
+# 	paste -s -d ' ' $< | strace $P/bin/postgres --single opta 2> $@
 
 pgpopulate: | optadata postgres
 	$P/bin/initdb
 	$P/bin/pg_ctl start
 	sleep 3
 	$P/bin/createdb opta
-	$(PY) optaload/pgload.py # Populate Postgres
+	$(PY) src/postgres/pgload.py # Populate Postgres
 	$P/bin/pg_ctl stop
 
 tmp/csvgraph: | optadata
-	$(PY) optaload/read_files.py $(DATADIR)
+	$(PY) src/neo4j/read_files.py $(DATADIR)
 neopopulate: tmp/csvgraph $(NEOTARGET)
-	NEO4J_DIR=$P optaload/import_csv.sh	# Populate Neo4j
+	NEO4J_DIR=$P src/neo4j/import_csv.sh	# Populate Neo4j
 
-benchmark: $(addprefix $P/,pgstat1 pgstat2 pgtime1 pgtime2)
+benchmark: $(addprefix $P/,pgtime0 pgstat0 pgstat1 pgstat2 pgtime1 pgtime2) $P/specs.tex
 
-clean:
+clearcache:
+	-find src -name "__pycache__" | xargs $(RM) -r
+
+clean: clearcache
 	$(RM) -r build
 	cd neo4j && mvn clean
 

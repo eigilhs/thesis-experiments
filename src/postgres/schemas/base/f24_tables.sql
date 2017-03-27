@@ -3,7 +3,6 @@ CREATE TABLE IF NOT EXISTS events (
        match_id         INTEGER REFERENCES matches(id),
        team_id          INTEGER REFERENCES teams(id),
        player_id        INTEGER REFERENCES players(id),
-       qualifiers	JSONB,
        event_id         INTEGER,
        type_id          INTEGER,
        period_id        INTEGER,
