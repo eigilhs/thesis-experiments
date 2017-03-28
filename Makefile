@@ -52,13 +52,12 @@ pgstart:
 pgstop:
 	$P/bin/pg_ctl stop
 
-$P/pgstat%: src/postgres/queries/query%.sql
-	perf stat -r 10 -ddd -o $@ -- sh -c "paste -s -d ' ' $< | $P/bin/postgres --single opta"
-$P/pgtime%: src/postgres/queries/query%.sql
-	paste -s -d ' ' $< | $(GTIME) -v $P/bin/postgres --single opta 2> $@
-
-# $P/pgstrace%: src/query%.sql
-# 	paste -s -d ' ' $< | strace $P/bin/postgres --single opta 2> $@
+$P/pgstat_base.%: src/postgres/queries/base/query%.sql
+	$P/bin/psql opta -c "ALTER DATABASE opta SET search_path TO base;"
+	perf stat -a -o $@ -ddd -r 5 -- sh -c "$P/bin/psql opta -f $<"
+$P/pgstat_jsonb.%: src/postgres/queries/jsonb/query%.sql
+	$P/bin/psql opta -c "ALTER DATABASE opta SET search_path TO jsonb;"
+	perf stat -a -o $@ -ddd -r 5 -- sh -c "$P/bin/psql opta -f $<"
 
 pgpopulate: | optadata postgres
 	$P/bin/initdb
@@ -73,7 +72,7 @@ tmp/csvgraph: | optadata
 neopopulate: tmp/csvgraph $(NEOTARGET)
 	NEO4J_DIR=$P src/neo4j/import_csv.sh	# Populate Neo4j
 
-benchmark: $(addprefix $P/,pgtime0 pgstat0 pgstat1 pgstat2 pgtime1 pgtime2) $P/specs.tex
+benchmark: $(addprefix $P/,pgstat_base.1 pgstat_base.2 pgstat_jsonb.1 pgstat_jsonb.2) $P/specs.tex
 
 clearcache:
 	-find src -name "__pycache__" | xargs $(RM) -r
@@ -85,3 +84,4 @@ clean: clearcache
 distclean: clean
 	$(RM) -r $P
 	$(RM) .neo4j-version
+	$(RM) -r $(DATADIR)
