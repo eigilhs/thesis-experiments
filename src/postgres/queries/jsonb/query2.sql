@@ -4,11 +4,11 @@ FROM (
         match_id,
         nth_value(events.id,       1) OVER w AS id1,
         nth_value(events.type_id,  1) OVER w AS etype1,
-        nth_value(events.qualifiers ? '6', 1) OVER w AS q1,
-        nth_value(events.qualifiers ? '15', 2) OVER w AS q2,
         nth_value(events.type_id,  2) OVER w AS etype2,
         nth_value(events.type_id,  3) OVER w AS etype3,
         nth_value(events.type_id,  4) OVER w AS etype4,
+        nth_value(events.qualifiers ? '6',  1) OVER w AS q1,
+        nth_value(events.qualifiers ? '15', 2) OVER w AS q2,
         nth_value(events.qualifiers ? '15', 4) OVER w AS q4
     FROM events
     WINDOW w AS (
