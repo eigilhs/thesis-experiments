@@ -22,9 +22,6 @@ headers = {'Player': ('uID:ID(Player),name:string,loan:int,position:string,'
                     'period_4_start:string,period_5_start:string,'
                     'season_id:int,season_name:string'),
            'Qualifier': 'id:ID(Qualifier),qualifier_id:int,value:string',
-           'TeamOfficial': ('uID:ID(TeamOfficial),First:string,Last:string,BirthDate:string,'
-                            'join_date:string,Type:string,country:string'),
-           'Stadium': 'uID:ID(Stadium),Name:string,Capacity:int',
            'Season': 'season_id:ID(Season),season_name:string',
            'Competition': ('competition_id:ID(Competition),competition_code:string,'
                       'competition_name:string'),
@@ -32,20 +29,19 @@ headers = {'Player': ('uID:ID(Player),name:string,loan:int,position:string,'
                     'region_id:int,region_name:string,short_club_name:string,'
                     'street:string,web_address:string'),
            'PLAYS FOR': ':START_ID(Player),:END_ID(Team)',
-           'MANAGES': ':START_ID(TeamOfficial),:END_ID(Team)',
-           'IS THE STADIUM OF': ':START_ID(Stadium),:END_ID(Team)',
            'PLAYS IN': ':START_ID(Team),:END_ID(Season)',
            'IS A SEASON OF': ':START_ID(Season),:END_ID(Competition)',
            'IS A LEAGUE IN': ':START_ID(Competition),:END_ID(Sport)',
            'WAS INVOLVED IN': ':START_ID(Player),:END_ID(Event)',
            'IS PART OF': ':START_ID(Qualifier),:END_ID(Event)',
            'HAPPENED IN': ':START_ID(Event),:END_ID(Game)',
+           'PRECEDED': ':START_ID(Event),:END_ID(Event)',
            'PLAYED IN': ':START_ID(Team),:END_ID(Game)',
            'IS A GAME IN': ':START_ID(Game),:END_ID(Season)',
 }
 
 
-class Graph:
+class BaseGraph:
 
     def __init__(self):
         import os
@@ -75,24 +71,3 @@ class Graph:
     def close(self):
         for k in self.files:
             self.files[k].close()
-
-
-# class Node(dict):
-
-#     def __init__(self, kind, **kwargs):
-#         self.kind = kind
-#         self.update(kwargs)
-#         if 'id' not in self:
-#             for k in self:
-#                 if (kind.lower + '_id') == k or k == 'uID':
-#                     self['id'] = self[k]
-#                     break
-
-
-# class Relationship:
-
-#     def __init__(self, a, kind, b):
-#         self.kind = kind
-#         self.a = a
-#         self.b = b
-        

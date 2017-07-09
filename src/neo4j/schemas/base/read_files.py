@@ -1,7 +1,6 @@
 import os
 import sys
-# from py2neo import Graph, Node, Relationship
-from csvgraph import Graph
+from base_schema import BaseGraph as Graph
 from xml.etree import ElementTree as et
 import glob
 
@@ -44,18 +43,6 @@ for fname in glob.glob(os.path.join(datadir, 'srml-*-squads.xml')):
             players.add(p)
             graph.create_rel(p, 'PLAYS FOR', t)
     
-        for official in team.findall('TeamOfficial'):
-            for info in official.find('PersonName'):
-                official.attrib[info.tag] = stringfromelem(info)
-            o = graph.create_node('TeamOfficial', **official.attrib)
-            graph.create_rel(o, 'MANAGES', t)
-    
-        for stadium in team.findall('Stadium'):
-            for info in stadium:
-                stadium.attrib[info.tag] = stringfromelem(info)
-            s = graph.create_node('Stadium', **stadium.attrib)
-            graph.create_rel(s, 'IS THE STADIUM OF', t)
-    
         graph.create_rel(t, 'PLAYS IN', season)
 
     player_changes = soccer_document.find('PlayerChanges')
@@ -84,17 +71,8 @@ for fname in glob.glob(os.path.join(datadir, 'f24*eventdetails.xml')):
     game = games.find('Game')
     s = game.attrib['season_id'] + game.attrib['competition_id']
     g = graph.create_node('Game', **game.attrib)
-    # s = graph.run('MATCH (s:Season { season_id: "%s" })'
-    #               '--(l:Competition { competition_id: "%s" })'
-    #               ' RETURN s' % (game.attrib['season_id'],
-    #                              game.attrib['competition_id'])).evaluate()
-    # if not s:
-    #     continue
-    # home = graph.run('MATCH (t:Team { uID: "t%s" }) RETURN t'
-    #                  % game.attrib['home_team_id']).evaluate()
-    # away = graph.run('MATCH (t:Team { uID: "t%s" }) RETURN t'
-    #                  % game.attrib['away_team_id']).evaluate()
 
+    previous = None
     for event in game:
         e = graph.create_node('Event', **event.attrib)
         for qualifier in event:
@@ -104,7 +82,10 @@ for fname in glob.glob(os.path.join(datadir, 'f24*eventdetails.xml')):
         pid = event.get('player_id')
         if pid and ('p'+pid) in players:
             graph.create_rel('p'+pid, 'WAS INVOLVED IN', e)
+        if previous:
+            graph.create_rel(previous, 'PRECEDED', e)
         graph.create_rel(e, 'HAPPENED IN', g)
+        previous = e
     
     graph.create_rel('t'+game.attrib['home_team_id'], 'PLAYED IN', g)
     graph.create_rel('t'+game.attrib['away_team_id'], 'PLAYED IN', g)

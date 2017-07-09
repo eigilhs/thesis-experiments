@@ -52,12 +52,16 @@ pgstart:
 pgstop:
 	$P/bin/pg_ctl stop
 
+EVENTS := cpu-clock,context-switches,cpu-migrations,page-faults,cycles,instructions,branches,branch-misses,syscalls:sys_enter_read,syscalls:sys_enter_write,syscalls:sys_enter_fsync,block:block_rq_complete
+
 $P/pgstat_base.%: src/postgres/queries/base/query%.sql
 	$P/bin/psql opta -c "ALTER DATABASE opta SET search_path TO base;"
-	perf stat -a -o $@ -ddd -r 5 -- sh -c "$P/bin/psql opta -f $<"
+	sudo -E perf stat -e $(EVENTS) -a -o $@ -ddd -r 5 -- \
+	sh -c "sudo -E -u $(USER) $P/bin/psql opta -f $<"
 $P/pgstat_jsonb.%: src/postgres/queries/jsonb/query%.sql
 	$P/bin/psql opta -c "ALTER DATABASE opta SET search_path TO jsonb;"
-	perf stat -a -o $@ -ddd -r 5 -- sh -c "$P/bin/psql opta -f $<"
+	sudo -E perf stat -e $(EVENTS) -a -o $@ -ddd -r 5 -- \
+	sh -c "sudo -E -u $(USER) $P/bin/psql opta -f $<"
 
 pgpopulate: | optadata postgres
 	$P/bin/initdb
@@ -68,7 +72,7 @@ pgpopulate: | optadata postgres
 	$P/bin/pg_ctl stop
 
 tmp/csvgraph: | optadata
-	$(PY) src/neo4j/read_files.py $(DATADIR)
+	$(PY) src/neo4j/schemas/base/read_files.py $(DATADIR)
 neopopulate: tmp/csvgraph $(NEOTARGET)
 	NEO4J_DIR=$P src/neo4j/import_csv.sh	# Populate Neo4j
 
