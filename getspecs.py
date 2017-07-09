@@ -26,3 +26,8 @@ latex_variable('plfdistversion', platform.dist()[1])
 latex_variable('plfkernelversion', platform.release())
 latex_variable('plfarchitecture', platform.architecture()[0].replace('bit', '-bit'))
 latex_variable('plfmachine', platform.machine().replace('_', r'\_'))
+
+# Perf version
+# PostgreSQL version
+# Neo4j version
+# Java version

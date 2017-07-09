@@ -5,6 +5,7 @@ from glob import glob
 
 from .. import BaseSchema
 
+
 class JSONBSchema(BaseSchema):
 
     __schema_name__ = "jsonb"
@@ -23,7 +24,8 @@ class JSONBSchema(BaseSchema):
                 continue
             qj = {}
             for qualifier in event:
-                qj[qualifier.get('qualifier_id')] = self._parse_stuff(qualifier.get('value', True))
+                qj[qualifier.get('qualifier_id')] = self._parse_stuff(
+                    qualifier.get('value', True))
         
             event_file.writerow({'match_id': game.get('id'),
                                  'qualifiers': json.dumps(qj),

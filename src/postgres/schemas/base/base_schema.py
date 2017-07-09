@@ -55,18 +55,34 @@ class BaseSchema:
                 continue
             self.log('Reading', fname, flush=True)
             with open(fname) as file:
-                competition, season, squad_entries, players, teams = self.process_f40(file)
+                (competition,
+                 season,
+                 squad_entries,
+                 players,
+                 teams) = self.process_f40(file)
             self.log('Inserting', fname, flush=True)
-            cur.execute('INSERT INTO competitions (%s) VALUES %s ON CONFLICT DO NOTHING',
-                        (AsIs(', '.join(competition.keys())), tuple(competition.values())))
-            cur.execute('INSERT INTO seasons (%s) VALUES %s ON CONFLICT DO NOTHING',
-                        (AsIs(', '.join(season.keys())), tuple(season.values())))
+            cur.execute('INSERT INTO competitions (%s) VALUES %s '
+                        'ON CONFLICT DO NOTHING',
+                        (AsIs(', '.join(competition.keys())),
+                         tuple(competition.values())))
+            cur.execute('INSERT INTO seasons (%s) VALUES %s '
+                        'ON CONFLICT DO NOTHING',
+                        (AsIs(', '.join(season.keys())),
+                         tuple(season.values())))
             for team in teams.values():
-                cur.execute('INSERT INTO teams (%s) VALUES %s ON CONFLICT DO NOTHING', (AsIs(', '.join(team.keys())), tuple(team.values())))
+                cur.execute('INSERT INTO teams (%s) VALUES %s '
+                            'ON CONFLICT DO NOTHING',
+                            (AsIs(', '.join(team.keys())),
+                             tuple(team.values())))
             for player in players.values():
-                cur.execute('INSERT INTO players (%s) VALUES %s ON CONFLICT DO NOTHING', (AsIs(', '.join(player.keys())), tuple(player.values())))
+                cur.execute('INSERT INTO players (%s) VALUES %s '
+                            'ON CONFLICT DO NOTHING',
+                            (AsIs(', '.join(player.keys())),
+                             tuple(player.values())))
             for entry in squad_entries.values():
-                cur.execute('INSERT INTO squad_entries (%s) VALUES %s', (AsIs(', '.join(entry.keys())), tuple(entry.values())))
+                cur.execute('INSERT INTO squad_entries (%s) VALUES %s',
+                            (AsIs(', '.join(entry.keys())),
+                             tuple(entry.values())))
 
     def insert_f9(self, cur):
         for fname in glob('optadata/srml-*-matchresults.xml'):
@@ -78,17 +94,22 @@ class BaseSchema:
             self.log('Inserting', fname, flush=True)
 
             for plr in mp:
-                cur.execute('INSERT INTO players (%s) VALUES %s ON CONFLICT DO NOTHING',
-                            (AsIs(', '.join(plr.keys())), tuple(plr.values())))
+                cur.execute('INSERT INTO players (%s) VALUES %s '
+                            'ON CONFLICT DO NOTHING',
+                            (AsIs(', '.join(plr.keys())),
+                             tuple(plr.values())))
 
             cur.execute('INSERT INTO matches (%s) VALUES %s',
-                            (AsIs(', '.join(m.keys())), tuple(m.values())))
+                            (AsIs(', '.join(m.keys())),
+                             tuple(m.values())))
             for player_id, stats in p.items():
                 cur.execute('INSERT INTO player_results (%s) VALUES %s',
-                            (AsIs(', '.join(stats.keys())), tuple(stats.values())))
+                            (AsIs(', '.join(stats.keys())),
+                             tuple(stats.values())))
             for team in t:
                 cur.execute('INSERT INTO team_results (%s) VALUES %s',
-                            (AsIs(', '.join(team.keys())), tuple(team.values())))
+                            (AsIs(', '.join(team.keys())),
+                             tuple(team.values())))
 
     def insert_f24(self, cur):
 
@@ -304,7 +325,8 @@ class BaseSchema:
                 m = dict(re.findall(r'([^ ]+)="([^"]+)"', line))
                 team_id = m['uID'][1:]
                 teams[team_id]['id'] = team_id
-                for key in {'short_club_name', 'official_club_name', 'city', 'region', 'country'}:
+                for key in {'short_club_name', 'official_club_name',
+                            'city', 'region', 'country'}:
                     if key in m:
                         teams[team_id][key] = m[key]
                 line = file.readline()
@@ -312,7 +334,8 @@ class BaseSchema:
                     m = re.search(r'<(?P<key>[^>]+)>(?P<value>[^<]+)<', line)
                     teams[team_id][m.group('key').lower()] = m.group('value')
                     line = file.readline()
-                teams[team_id]['name'] = re.search(r'<Name>([^<]+)<', line).group(1)
+                teams[team_id]['name'] = re.search(r'<Name>([^<]+)<',
+                                                   line).group(1)
 
                 for line in file:
                     if '<Player ' in line:
@@ -320,10 +343,14 @@ class BaseSchema:
                         players[player_id]['id'] = player_id
                         squad_entries[player_id]['team_id'] = team_id
                         squad_entries[player_id]['player_id'] = player_id
-                        players[player_id]['name'] = re.search(r'>([^<]+)<', file.readline()).group(1)
-                        squad_entries[player_id]['position'] = re.search(r'>([^<]+)<', file.readline()).group(1)
+                        players[player_id]['name'] = re.search(
+                            r'>([^<]+)<', file.readline()).group(1)
+                        squad_entries[player_id]['position'] = re.search(
+                            r'>([^<]+)<', file.readline()).group(1)
                         for line in file:
-                            m = re.search(r'<Stat Type="(?P<type>[^"]+)">(?P<val>[^>]+)<', line)
+                            m = re.search(
+                                r'<Stat Type="(?P<type>[^"]+)">(?P<val>[^>]+)<',
+                                line)
                             if m and m.group('val') != 'Unknown' and not '-00' in m.group('val'):
                                 if m.group('type') in {'join_date', 'leave_date',
                                                  'new_team', 'real_position',

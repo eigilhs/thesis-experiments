@@ -9,7 +9,9 @@ FROM (
         nth_value(events.type_id,  2) OVER w AS etype2,
         nth_value(events.type_id,  3) OVER w AS etype3,
         nth_value(events.type_id,  4) OVER w AS etype4,
-        nth_value(qs.qualifier_id, 4) OVER w AS qtype4
+        nth_value(qs.qualifier_id, 4) OVER w AS qtype4,
+        nth_value(events.outcome, 2) OVER w AS oc2,
+        nth_value(events.outcome, 4) OVER w AS oc4
     FROM events
     LEFT JOIN (
          SELECT event_id, qualifier_id
@@ -25,9 +27,10 @@ FROM (
 ) AS situations
 WHERE situations.etype1 = 1
 AND   situations.qtype1 = 6
-AND   ((situations.etype2 = 12 AND situations.qtype2 = 15)
+AND   ((situations.etype2 = 12 AND situations.qtype2 = 15 AND situations.oc2)
         OR (    situations.etype2 = 44
             AND situations.etype3 = 44
             AND situations.etype4 = 12
-            AND situations.qtype4 = 15)
+            AND situations.qtype4 = 15
+            AND situations.oc4)
 );
