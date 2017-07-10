@@ -72,8 +72,11 @@ for fname in glob.glob(os.path.join(datadir, 'f24*eventdetails.xml')):
     s = game.attrib['season_id'] + game.attrib['competition_id']
     g = graph.create_node('Game', **game.attrib)
 
-    previous = None
+    period, previous = 1, None
     for event in game:
+        # Ignore deleted events
+        if event.attrib['type_id'] == 43:
+            continue
         e = graph.create_node('Event', **event.attrib)
         for qualifier in event:
             qualifier.attrib['id'] += event.attrib['id']
@@ -82,10 +85,10 @@ for fname in glob.glob(os.path.join(datadir, 'f24*eventdetails.xml')):
         pid = event.get('player_id')
         if pid and ('p'+pid) in players:
             graph.create_rel('p'+pid, 'WAS INVOLVED IN', e)
-        if previous:
+        if previous and event.attrib['period_id'] == period:
             graph.create_rel(previous, 'PRECEDED', e)
         graph.create_rel(e, 'HAPPENED IN', g)
-        previous = e
+        period, previous = event.attrib['period_id'], e
     
     graph.create_rel('t'+game.attrib['home_team_id'], 'PLAYED IN', g)
     graph.create_rel('t'+game.attrib['away_team_id'], 'PLAYED IN', g)
