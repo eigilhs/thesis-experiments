@@ -1,4 +1,3 @@
-// Counter attacks
 MATCH p = (e2:Event) -[:PRECEDED*]-> (e3:Event),
       (e1:Event) -[:PRECEDED]-> (e2),
       (e3) -[:PRECEDED]-> (e4:Event)
