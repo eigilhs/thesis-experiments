@@ -5,3 +5,6 @@
 	path = neo4j
 	url = git@github.com:neo4j/neo4j.git
         ignore = dirty
+[submodule "cypher-shell"]
+	path = cypher-shell
+	url = git@github.com:neo4j/cypher-shell.git
