@@ -81,7 +81,7 @@ $P/pgstat_jsonb.%.tex: $P/pgstat_jsonb.%
 $P/neostat_base.%.tex: $P/neostat_base.%
 	cat $< | ./csv2table.py > $@
 
-charts: $(addprefix $P/,pgstat_1_cycles.pdf pgstat_2_cycles.pdf pgstat_1_syscalls.pdf pgstat_2_syscalls.pdf compstat_1_cycles.pdf compstat_2_cycles.pdf compstat_1_syscalls.pdf compstat_2_syscalls.pdf)
+charts: $(addprefix $P/,pgstat_1_cycles.pdf pgstat_2_cycles.pdf pgstat_3_cycles.pdf pgstat_1_syscalls.pdf pgstat_2_syscalls.pdf pgstat_3_syscalls.pdf compstat_1_cycles.pdf compstat_2_cycles.pdf  compstat_3_cycles.pdf compstat_1_syscalls.pdf compstat_2_syscalls.pdf compstat_3_syscalls.pdf)
 
 $P/pgstat_%_cycles.pdf: $P/pgstat_base.% $P/pgstat_jsonb.%
 	./generate_plots.py -o $@ -m cycles,instructions,branches -l Base,JSONB $^
@@ -108,7 +108,7 @@ tmp/csvgraph: | optadata
 neopopulate: tmp/csvgraph $(NEOTARGET)
 	NEO4J_DIR=$P src/neo4j/import_csv.sh	# Populate Neo4j
 
-benchmark: $(addprefix $P/,pgstat_base.1.tex pgstat_base.2.tex pgstat_jsonb.1.tex pgstat_jsonb.2.tex neostat_base.1.tex neostat_base.2.tex neostat_base.3.tex) $P/specs.tex
+benchmark: $(addprefix $P/,pgstat_base.1.tex pgstat_base.2.tex pgstat_base.3.tex pgstat_jsonb.1.tex pgstat_jsonb.2.tex pgstat_jsonb.3.tex neostat_base.1.tex neostat_base.2.tex neostat_base.3.tex) $P/specs.tex
 
 clearcache:
 	-find src -name "__pycache__" | xargs $(RM) -r
