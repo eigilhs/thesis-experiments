@@ -7,4 +7,4 @@ WITH p, avg(e.outcome) as a, count(e) AS c
 WHERE c > 100
 RETURN p.name, a, c
 ORDER BY a DESC
-LIMIT 10
+LIMIT 10;
