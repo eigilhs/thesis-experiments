@@ -65,8 +65,7 @@ for fname in glob.glob(os.path.join(datadir, 'srml-*-squads.xml')):
     print(' done.', file=sys.stderr)
 
 for fname in glob.glob(os.path.join(datadir, 'f24*eventdetails.xml')):
-    year = fname.split('-')[2]
-    if len(year) < 2 or int(year) < 2015:
+    if int(fname.split('-')[2]) < 2015:
         continue
     print('Reading', fname, '...', end='', file=sys.stderr, flush=True)
     games = et.parse(fname).getroot()
@@ -78,7 +77,7 @@ for fname in glob.glob(os.path.join(datadir, 'f24*eventdetails.xml')):
     period, previous = 1, None
     for event in game:
         # Ignore deleted events
-        if event.attrib['type_id'] == 43:
+        if event.attrib['type_id'] == '43':
             continue
         e = graph.create_node('Event', **event.attrib)
         for qualifier in event:
