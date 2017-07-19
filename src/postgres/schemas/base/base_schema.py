@@ -129,7 +129,8 @@ class BaseSchema:
                                    extrasaction='ignore', dialect='excel-tab')
 
         for fname in glob('optadata/f24-*.xml'):
-            if int(fname.split('-')[2]) < 2015:
+            year = fname.split('-')[2]
+            if len(year) < 2 or int(year) < 2015:
                 continue
             self.log('Reading', fname, flush=True)
             with open(fname) as file:

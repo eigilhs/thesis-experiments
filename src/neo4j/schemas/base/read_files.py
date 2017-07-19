@@ -65,7 +65,8 @@ for fname in glob.glob(os.path.join(datadir, 'srml-*-squads.xml')):
     print(' done.', file=sys.stderr)
 
 for fname in glob.glob(os.path.join(datadir, 'f24*eventdetails.xml')):
-    if int(fname.split('-')[2]) < 2015:
+    year = fname.split('-')[2]
+    if len(year) < 2 or int(year) < 2015:
         continue
     print('Reading', fname, '...', end='', file=sys.stderr, flush=True)
     games = et.parse(fname).getroot()
