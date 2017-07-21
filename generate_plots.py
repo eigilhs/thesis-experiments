@@ -26,31 +26,50 @@ hatches = ' ', '//', '..', '++', '\\\\', 'xx', '/', '\\', 'x', '+'
 
 data = []
 for fname in args.input:
-    means, errs = [], []
+    means, errs, errrates = [], [], []
     with open(fname) as file:
         h = {row[2]: (eval(row[0]), 0.01 * float(row[3].strip('%')))
              for row in csv.reader(file, delimiter=';')}
     for metric in metrics:
         means.append(h[metric][0])
         errs.append(h[metric][1] * means[-1])
-    data.append((means, errs))
+        errrates.append(h[metric][1])
+    data.append((means, errs, errrates))
 
 
 ind = np.arange(len(metrics))
 width = 0.35
 
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(figsize=(3, 3))
+leg = []
+rects = []
 
 if color:
-    leg = [ax.bar(ind + width*i, means, width, color=color, yerr=errs)[0]
-           for i, ((means, errs), color) in enumerate(zip(data, colors))]
+    for i, ((means, errs, _), color) in enumerate(zip(data, colors)):
+        r = ax.bar(ind + width*i, means, width, color=color, yerr=errs)
+        rects.append(r)
+        leg.append(r[0])
 else:
-    leg = [ax.bar(ind + width*i, means, width, color='w', edgecolor='k',
-                  hatch=hatch, yerr=errs)[0]
-           for i, ((means, errs), hatch) in enumerate(zip(data, hatches))]
+    for i, ((means, errs, _), hatch) in enumerate(zip(data, hatches)):
+        r = ax.bar(ind + width*i, means, width, color='w', edgecolor='k',
+                   hatch=hatch, yerr=errs)
+        rects.append(r)
+        leg.append(r[0])
 
-ax.set_xticks(ind + width / 2)
-ax.set_xticklabels(metrics)
-ax.legend(leg, labels)
+# ax.set_xticks(ind + width / 2)
+# ax.set_xticklabels(metrics)
+ax.set_xticks([])
+ax.set_xticklabels([])
+# ax.legend(leg, labels)
+ax.yaxis.get_major_formatter().set_powerlimits((0, 3))
+# ax.set_yticks([])
+# ax.set_ylim(0, max(m+e for ms, es, _ in data for m, e in zip(ms, es))*1.2)
+
+# for r, d in zip(rects, data):
+#     for rect, err in zip(r, d[2]):
+#         height = rect.get_height()
+#         ax.text(rect.get_x() + rect.get_width()/2., 1.05 * height * (1 + err),
+#                 '%g' % int(height),
+#                 ha='center', va='bottom')
 
 plt.savefig(outfilename, bbox_inches='tight')

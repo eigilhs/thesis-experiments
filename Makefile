@@ -71,7 +71,10 @@ $P/pgstat_jsonb.%: src/postgres/queries/jsonb/query%.sql
 	sudo -E perf stat -e $(EVENTS) -x';' -a -d -r 5 -- \
 	sh -c "sudo -E -u $(USER) $P/bin/psql opta -f $<" 2> $@
 $P/neostat_base.%: src/neo4j/queries/base/query%.cql
-	# TODO: change database
+	sed -Ei 's/active_database=\w+.db/active_database=base.db/' out/conf/neo4j.conf
+	out/bin/neo4j restart && sleep 5
+	@echo Warm-up ...
+	sudo -E -u $(USER) cat $< | out/bin/cypher-shell
 	sudo -E perf stat -e $(EVENTS) -x';' -a -d -r 5 -- \
 	sh -c "sudo -E -u $(USER) cat $< | out/bin/cypher-shell" 2> $@
 $P/pgstat_base.%.tex: $P/pgstat_base.%
@@ -81,19 +84,20 @@ $P/pgstat_jsonb.%.tex: $P/pgstat_jsonb.%
 $P/neostat_base.%.tex: $P/neostat_base.%
 	cat $< | ./csv2table.py > $@
 
-charts: $(addprefix $P/,pgstat_1_cycles.pdf pgstat_2_cycles.pdf pgstat_3_cycles.pdf pgstat_1_syscalls.pdf pgstat_2_syscalls.pdf pgstat_3_syscalls.pdf compstat_1_cycles.pdf compstat_2_cycles.pdf  compstat_3_cycles.pdf compstat_1_syscalls.pdf compstat_2_syscalls.pdf compstat_3_syscalls.pdf)
+charts: $(addprefix $P/,pgstat_1_cycles.pdf pgstat_2_cycles.pdf pgstat_3_cycles.pdf compstat_1_cycles.pdf compstat_2_cycles.pdf compstat_3_cycles.pdf)
+
+COMMA := ,
+SPACE :=
+SPACE +=
 
 $P/pgstat_%_cycles.pdf: $P/pgstat_base.% $P/pgstat_jsonb.%
-	./generate_plots.py -o $@ -m cycles,instructions,branches -l Base,JSONB $^
-$P/pgstat_%_syscalls.pdf: $P/pgstat_base.% $P/pgstat_jsonb.%
-	./generate_plots.py -o $@ -l Base,JSONB \
-	-m 'syscalls:sys_enter_read,syscalls:sys_enter_write,page-faults' $^
+	for m in $(subst $(COMMA),$(SPACE),$(EVENTS)); do \
+		./generate_plots.py -o $(@D)/pgstat_$*_$$m.pdf -m $$m -l Base,JSONB $^ ; \
+	done
 $P/compstat_%_cycles.pdf: $P/pgstat_jsonb.% $P/neostat_base.%
-	./generate_plots.py -o $@ -m cycles,instructions,branches \
-	-l 'PostgreSQL with JSONB',Neo4j $^
-$P/compstat_%_syscalls.pdf: $P/pgstat_jsonb.% $P/neostat_base.%
-	./generate_plots.py -o $@ -l 'PostgreSQL with JSONB',Neo4j \
-	-m 'syscalls:sys_enter_read,syscalls:sys_enter_write,page-faults' $^
+	for m in $(subst $(COMMA),$(SPACE),$(EVENTS)); do \
+		./generate_plots.py -o $(@D)/compstat_$*_$$m.pdf -m $$m -l PostgreSQL,Neo4j $^ ; \
+	done
 
 pgpopulate: | optadata postgres
 	$P/bin/initdb

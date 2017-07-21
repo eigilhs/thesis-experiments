@@ -23,3 +23,11 @@ $NEO4J_DIR/bin/neo4j-import --stacktrace true --multiline-fields true \
   --relationships:PLAYS_FOR /tmp/csvgraph/PLAYS_FOR.csv \
   --relationships:PLAYS_IN /tmp/csvgraph/PLAYS_IN.csv \
   --relationships:WAS_INVOLVED_IN /tmp/csvgraph/WAS_INVOLVED_IN.csv
+
+
+sed -Ei 's/active_database=\w+.db/active_database=base.db/' $NEO4J_DIR/conf/neo4j.conf
+$NEO4J_DIR/bin/neo4j restart && sleep 3
+$NEO4J_DIR/bin/cypher-shell <<EOF && sleep 10
+CREATE INDEX ON :Event(type_id);
+CREATE INDEX ON :Qualifier(qualifier_id);
+EOF
