@@ -42,6 +42,7 @@ neo4j-version:
 $(NEOTARGET): .neo4j-version | $P
 	cd neo4j && mvn clean install -U -DskipTests -Dlicense.skip=true
 	tar xf $(NEOTARDIR)/neo4j-community-*-unix.tar.gz --strip 1 -C $|
+	sed -i '/auth_enabled/s/^#//' out/conf/neo4j.conf
 
 neo4j: $(NEOTARGET)
 
@@ -60,7 +61,7 @@ neostart:
 neostop:
 	$P/bin/neo4j stop
 
-EVENTS := cpu-clock,context-switches,cpu-migrations,page-faults,cycles,instructions,branches,branch-misses,syscalls:sys_enter_read,syscalls:sys_enter_write,syscalls:sys_enter_fsync,block:block_rq_complete
+EVENTS := cycles,instructions,cpu-clock,context-switches,cpu-migrations,branches,branch-misses,page-faults,cache-misses,bus-cycles,mem-loads,mem-stores,cache-references
 
 $P/pgstat_base.%: src/postgres/queries/base/query%.sql 
 	$P/bin/psql opta -c "ALTER DATABASE opta SET search_path TO base;"
@@ -77,11 +78,11 @@ $P/neostat_base.%: src/neo4j/queries/base/query%.cql
 	sudo -E -u $(USER) cat $< | out/bin/cypher-shell
 	sudo -E perf stat -e $(EVENTS) -x';' -a -d -r 5 -- \
 	sh -c "sudo -E -u $(USER) cat $< | out/bin/cypher-shell" 2> $@
-$P/pgstat_base.%.tex: $P/pgstat_base.%
+$P/pgstat_base.%.tex: $P/pgstat_base.% csv2table.py
 	cat $< | ./csv2table.py > $@
-$P/pgstat_jsonb.%.tex: $P/pgstat_jsonb.%
+$P/pgstat_jsonb.%.tex: $P/pgstat_jsonb.% csv2table.py
 	cat $< | ./csv2table.py > $@
-$P/neostat_base.%.tex: $P/neostat_base.%
+$P/neostat_base.%.tex: $P/neostat_base.% csv2table.py
 	cat $< | ./csv2table.py > $@
 
 charts: $(addprefix $P/,pgstat_1_cycles.pdf pgstat_2_cycles.pdf pgstat_3_cycles.pdf compstat_1_cycles.pdf compstat_2_cycles.pdf compstat_3_cycles.pdf)
