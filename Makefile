@@ -16,7 +16,7 @@ NEOTARGET = $P/lib/neo4j-common-*.jar
 	neo4j benchmark pgpopulate neopopulate pgstart pgstop \
 	clearcache charts neostart neostop
 
-all: pgpopulate neopopulate $P/bin/cypher-shell
+all: pgpopulate $P/bin/cypher-shell neopopulate
 
 $P $(PGDIR):
 	mkdir -p $@
