@@ -100,7 +100,7 @@ $P/compstat_%_cycles.pdf: $P/pgstat_jsonb.% $P/neostat_base.%
 		./generate_plots.py -o $(@D)/compstat_$*_$$m.pdf -m $$m -l PostgreSQL,Neo4j $^ ; \
 	done
 
-pgpopulate: | optadata postgres
+pgpopulate: | $(DATADIR) postgres
 	$P/bin/initdb
 	$P/bin/pg_ctl start
 	sleep 3
@@ -108,7 +108,7 @@ pgpopulate: | optadata postgres
 	$(PY) src/postgres/pgload.py # Populate Postgres
 	$P/bin/pg_ctl stop
 
-tmp/csvgraph: | optadata
+tmp/csvgraph: | $(DATADIR)
 	$(PY) src/neo4j/schemas/base/read_files.py $(DATADIR)
 neopopulate: tmp/csvgraph $(NEOTARGET)
 	NEO4J_DIR=$P src/neo4j/import_csv.sh	# Populate Neo4j
