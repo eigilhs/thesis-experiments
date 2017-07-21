@@ -42,7 +42,7 @@ neo4j-version:
 $(NEOTARGET): .neo4j-version | $P
 	cd neo4j && mvn clean install -U -DskipTests -Dlicense.skip=true
 	tar xf $(NEOTARDIR)/neo4j-community-*-unix.tar.gz --strip 1 -C $|
-	sed -i '/auth_enabled/s/^#//' out/conf/neo4j.conf
+	sed -i '/auth_enabled/s/^#//' $P/conf/neo4j.conf
 
 neo4j: $(NEOTARGET)
 
@@ -72,12 +72,12 @@ $P/pgstat_jsonb.%: src/postgres/queries/jsonb/query%.sql
 	sudo -E perf stat -e $(EVENTS) -x';' -a -d -r 5 -- \
 	sh -c "sudo -E -u $(USER) $P/bin/psql opta -f $<" 2> $@
 $P/neostat_base.%: src/neo4j/queries/base/query%.cql
-	sed -Ei 's/active_database=\w+.db/active_database=base.db/' out/conf/neo4j.conf
-	out/bin/neo4j restart && sleep 5
+	sed -Ei 's/active_database=\w+.db/active_database=base.db/' $P/conf/neo4j.conf
+	$P/bin/neo4j restart && sleep 5
 	@echo Warm-up ...
-	sudo -E -u $(USER) cat $< | out/bin/cypher-shell
+	sudo -E -u $(USER) cat $< | $P/bin/cypher-shell
 	sudo -E perf stat -e $(EVENTS) -x';' -a -d -r 5 -- \
-	sh -c "sudo -E -u $(USER) cat $< | out/bin/cypher-shell" 2> $@
+	sh -c "sudo -E -u $(USER) cat $< | $P/bin/cypher-shell" 2> $@
 $P/pgstat_base.%.tex: $P/pgstat_base.% csv2table.py
 	cat $< | ./csv2table.py > $@
 $P/pgstat_jsonb.%.tex: $P/pgstat_jsonb.% csv2table.py
@@ -101,16 +101,17 @@ $P/compstat_%_cycles.pdf: $P/pgstat_jsonb.% $P/neostat_base.%
 	done
 
 pgpopulate: | $(DATADIR) postgres
+	$(RM) -r $(PGDATA)
 	$P/bin/initdb
 	$P/bin/pg_ctl start
 	sleep 3
 	$P/bin/createdb opta
 	$(PY) src/postgres/pgload.py # Populate Postgres
-	$P/bin/pg_ctl stop
 
 tmp/csvgraph: | $(DATADIR)
 	$(PY) src/neo4j/schemas/base/read_files.py $(DATADIR)
 neopopulate: tmp/csvgraph $(NEOTARGET)
+	$(RM) -r $P/data/databases/*
 	NEO4J_DIR=$P src/neo4j/import_csv.sh	# Populate Neo4j
 
 benchmark: $(addprefix $P/,pgstat_base.1.tex pgstat_base.2.tex pgstat_base.3.tex pgstat_jsonb.1.tex pgstat_jsonb.2.tex pgstat_jsonb.3.tex neostat_base.1.tex neostat_base.2.tex neostat_base.3.tex) $P/specs.tex
