@@ -61,22 +61,29 @@ neostart:
 neostop:
 	$P/bin/neo4j stop
 
-EVENTS := cycles,instructions,cpu-clock,context-switches,cpu-migrations,branches,branch-misses,page-faults,cache-misses,bus-cycles,mem-loads,mem-stores,cache-references
+EVENTS := cycles,instructions,cpu-clock,context-switches,cpu-migrations,branches,branch-misses,page-faults,bus-cycles,mem-loads,mem-stores
+
+test:
+	bash -c "cat csv2table.py{,}"
+
+.SECONDARY: out/pgstat_base.1 out/pgstat_base.2 out/pgstat_base.3 out/pgstat_jsonb.1 out/pgstat_jsonb.2 out/pgstat_jsonb.3 out/neostat_base.1 out/neostat_base.2 out/neostat_base.3
 
 $P/pgstat_base.%: src/postgres/queries/base/query%.sql 
 	$P/bin/psql opta -c "ALTER DATABASE opta SET search_path TO base;"
-	sudo -E perf stat -e $(EVENTS) -x';' -a -d -r 5 -- \
+	sudo -E perf stat -p `head -1 out/data/postgres/postmaster.pid` \
+	-e $(EVENTS) -x';' -d -r 5 -- \
 	sh -c "sudo -E -u $(USER) $P/bin/psql opta -f $<" 2> $@
 $P/pgstat_jsonb.%: src/postgres/queries/jsonb/query%.sql
 	$P/bin/psql opta -c "ALTER DATABASE opta SET search_path TO jsonb;"
-	sudo -E perf stat -e $(EVENTS) -x';' -a -d -r 5 -- \
+	sudo -E perf stat -p `head -1 out/data/postgres/postmaster.pid` \
+	-e $(EVENTS) -x';' -d -r 5 -- \
 	sh -c "sudo -E -u $(USER) $P/bin/psql opta -f $<" 2> $@
 $P/neostat_base.%: src/neo4j/queries/base/query%.cql
 	sed -Ei 's/active_database=\w+.db/active_database=base.db/' $P/conf/neo4j.conf
-	$P/bin/neo4j restart && sleep 5
+	$P/bin/neo4j restart && sleep 10
 	@echo Warm-up ...
 	sudo -E -u $(USER) cat $< | $P/bin/cypher-shell
-	sudo -E perf stat -e $(EVENTS) -x';' -a -d -r 5 -- \
+	sudo -E perf stat -p `cat out/run/neo4j.pid` -e $(EVENTS) -x';' -d -r 5 -- \
 	sh -c "sudo -E -u $(USER) cat $< | $P/bin/cypher-shell" 2> $@
 $P/pgstat_base.%.tex: $P/pgstat_base.% csv2table.py
 	cat $< | ./csv2table.py > $@
@@ -101,8 +108,10 @@ $P/compstat_%_cycles.pdf: $P/pgstat_jsonb.% $P/neostat_base.%
 	done
 
 pgpopulate: | $(DATADIR) postgres
+	$P/bin/pg_ctl stop
 	$(RM) -r $(PGDATA)
 	$P/bin/initdb
+	sed -i -r '/^#?work_mem/{s/^#//;s/=\s?\w+/= 512MB/}' $(PGDATA)/postgresql.conf
 	$P/bin/pg_ctl start
 	sleep 3
 	$P/bin/createdb opta

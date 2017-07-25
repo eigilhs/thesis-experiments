@@ -1,14 +1,22 @@
-SELECT count(*)
-FROM (SELECT DISTINCT *, lead(x) OVER () AS lx,
-                         lead(min) OVER () AS lmin,
-                         lead(sec) OVER () AS lsec
-      FROM (SELECT *, lead(team_id) OVER w AS lti
-            FROM events
-            WINDOW w AS (PARTITION BY match_id, period_id
-                         ORDER BY min, sec, timestamp)
-            ) A
-      WHERE team_id != lti
-     ) B
-WHERE lsec + lmin*60 - (sec + min*60) BETWEEN 3 AND 10
-  AND lx - (100-x) > 20
-  AND (lx - (100-x)) / (lsec + lmin*60 - (sec + min*60)) > 6;
+WITH RECURSIVE events_1 AS (
+    SELECT *, lead(team_id) OVER () AS next_team,
+              lead(id)      OVER () AS next_id
+      FROM events
+), possessions AS (
+    SELECT e.id attack_id, *
+      FROM events_1 e
+     WHERE team_id != next_team
+  UNION
+    SELECT p.attack_id, e.*
+      FROM events_1 e, possessions p
+     WHERE e.id = p.next_id
+       AND (e.team_id = p.team_id OR p.id = p.attack_id)
+)
+SELECT count(DISTINCT p.attack_id)
+  FROM possessions p
+  JOIN events_1 e
+    ON e.id = p.attack_id
+   AND (p.sec - e.sec + (p.min - e.min)*60 >= 3
+        AND p.x - (100-e.x) > 20
+        AND (p.x - (100-e.x)) /
+            (p.sec - e.sec + (p.min - e.min)*60) > 6);
