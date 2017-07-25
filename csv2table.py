@@ -8,7 +8,7 @@ h = {row[2]: f"{eval(row[0]):,.0f} & {row[3].strip('%')}\% & {row[5]}\% & {row[6
 
 print(r"""\begin{tabular}{|l|c|c|c|c|}
 \hline
-\textbf{Event Name}   & \textbf{Counter Value} & \textbf{Variance} & \textbf{Measured} & \textbf{Note} \\
+\textbf{Event Name}   & \textbf{Counter Value} & \textbf{RSD} & \textbf{Measured} & \textbf{Note} \\
 \hline""")
 
 for name in h:
