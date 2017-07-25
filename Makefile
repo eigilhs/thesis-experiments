@@ -61,7 +61,7 @@ neostart:
 neostop:
 	$P/bin/neo4j stop
 
-EVENTS := cycles,instructions,cpu-clock,context-switches,cpu-migrations,branches,branch-misses,page-faults,bus-cycles,mem-loads,mem-stores
+EVENTS := cycles,instructions,cpu-clock,context-switches,cpu-migrations,branches,branch-misses,page-faults,cache-misses,bus-cycles,mem-loads,mem-stores,cache-references
 
 test:
 	bash -c "cat csv2table.py{,}"
@@ -83,6 +83,7 @@ $P/neostat_base.%: src/neo4j/queries/base/query%.cql
 	$P/bin/neo4j restart && sleep 10
 	@echo Warm-up ...
 	sudo -E -u $(USER) cat $< | $P/bin/cypher-shell
+	sleep 10
 	sudo -E perf stat -p `cat out/run/neo4j.pid` -e $(EVENTS) -x';' -d -r 5 -- \
 	sh -c "sudo -E -u $(USER) cat $< | $P/bin/cypher-shell" 2> $@
 $P/pgstat_base.%.tex: $P/pgstat_base.% csv2table.py
