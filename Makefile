@@ -61,10 +61,7 @@ neostart:
 neostop:
 	$P/bin/neo4j stop
 
-EVENTS := cycles,instructions,cpu-clock,context-switches,cpu-migrations,branches,branch-misses,page-faults,cache-misses,bus-cycles,mem-loads,mem-stores,cache-references
-
-test:
-	bash -c "cat csv2table.py{,}"
+EVENTS := cycles,instructions,task-clock,context-switches,branches,branch-misses,minor-faults,major-faults,page-faults,cache-misses,bus-cycles,mem-loads,mem-stores,cache-references,dTLB-load-misses,iTLB-load-misses,LLC-load-misses
 
 .SECONDARY: out/pgstat_base.1 out/pgstat_base.2 out/pgstat_base.3 out/pgstat_jsonb.1 out/pgstat_jsonb.2 out/pgstat_jsonb.3 out/neostat_base.1 out/neostat_base.2 out/neostat_base.3
 
@@ -112,11 +109,13 @@ pgpopulate: | $(DATADIR) postgres
 	$P/bin/pg_ctl stop
 	$(RM) -r $(PGDATA)
 	$P/bin/initdb
-	sed -i -r '/^#?work_mem/{s/^#//;s/=\s?\w+/= 512MB/}' $(PGDATA)/postgresql.conf
+	sed -i -r '/^#?work_mem/{s/^#//;s/=\s?\w+/= 1024MB/}' $(PGDATA)/postgresql.conf
+	sed -i -r '/^#?shared_buffers/{s/^#//;s/=\s?\w+/= 4096MB/}' $(PGDATA)/postgresql.conf
 	$P/bin/pg_ctl start
 	sleep 3
 	$P/bin/createdb opta
 	$(PY) src/postgres/pgload.py # Populate Postgres
+	$P/bin/psql opta -c 'VACUUM ANALYZE;'
 
 tmp/csvgraph: | $(DATADIR)
 	$(PY) src/neo4j/schemas/base/read_files.py $(DATADIR)
