@@ -1,8 +1,7 @@
 WITH RECURSIVE pertinent_events AS (
      SELECT id, type_id, prev_id
-     FROM (SELECT *, lag(id) OVER w AS prev_id FROM events
-           WINDOW w AS (PARTITION BY match_id, period_id
-                        ORDER BY min, sec, timestamp)) e
+     FROM (SELECT *, lag(id) OVER () AS prev_id
+           FROM events) e
      WHERE type_id = 44
         OR (type_id = 1  AND qualifiers ? '6')
         OR (type_id = 12 AND qualifiers ? '15' AND outcome)
