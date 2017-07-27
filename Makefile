@@ -61,7 +61,7 @@ neostart:
 neostop:
 	$P/bin/neo4j stop
 
-EVENTS := cycles,instructions,task-clock,context-switches,branches,branch-misses,minor-faults,major-faults,page-faults,cache-misses,bus-cycles,mem-loads,mem-stores,cache-references,dTLB-load-misses,iTLB-load-misses,LLC-load-misses
+EVENTS := cycles,instructions,task-clock,context-switches,cpu-migrations,branches,branch-misses,minor-faults,major-faults,page-faults,cache-misses,bus-cycles,mem-loads,mem-stores,cache-references,dTLB-load-misses,iTLB-load-misses,LLC-load-misses
 
 .SECONDARY: out/pgstat_base.1 out/pgstat_base.2 out/pgstat_base.3 out/pgstat_jsonb.1 out/pgstat_jsonb.2 out/pgstat_jsonb.3 out/neostat_base.1 out/neostat_base.2 out/neostat_base.3
 

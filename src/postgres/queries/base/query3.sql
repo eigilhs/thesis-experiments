@@ -2,7 +2,7 @@ SELECT $$(SELECT id, team_id, min, sec, x,
                  lead(team_id) OVER () AS next_team,
                  lead(id) OVER () AS next_id
           FROM events)$$ events_1 \gset
-EXPLAIN (ANALYZE, COSTS, VERBOSE, BUFFERS, FORMAT JSON) WITH RECURSIVE possessions AS (
+WITH RECURSIVE possessions AS (
     SELECT id attack_id, *
       FROM :events_1 e
      WHERE team_id != next_team
