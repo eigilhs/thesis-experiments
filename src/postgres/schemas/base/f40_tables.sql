@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS teams (
+CREATE TABLE teams (
        id                   INTEGER PRIMARY KEY,
        name                 TEXT NOT NULL,
        short_club_name      TEXT,
@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS teams (
        region               TEXT
 );
 
-CREATE TABLE IF NOT EXISTS players (
+CREATE TABLE players (
        id                   INTEGER PRIMARY KEY,
        name                 TEXT NOT NULL,
        first_name           TEXT,
@@ -26,19 +26,19 @@ CREATE TABLE IF NOT EXISTS players (
        first_nationality    TEXT
 );
 
-CREATE TABLE IF NOT EXISTS competitions (
+CREATE TABLE competitions (
        id                   INTEGER PRIMARY KEY,
        name                 TEXT NOT NULL,
        symid                TEXT,
        code                 TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS seasons (
+CREATE TABLE seasons (
        id                   INTEGER PRIMARY KEY,
        name                 TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS squad_entries (
+CREATE TABLE squad_entries (
        id                   SERIAL PRIMARY KEY,
        player_id            INTEGER REFERENCES players(id),
        team_id              INTEGER REFERENCES teams(id),

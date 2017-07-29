@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS events (
+CREATE TABLE events (
        id               INTEGER PRIMARY KEY,
        match_id         INTEGER REFERENCES matches(id),
        team_id          INTEGER REFERENCES teams(id),

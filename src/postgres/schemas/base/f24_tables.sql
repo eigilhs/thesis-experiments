@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS events (
+CREATE TABLE events (
        id               INTEGER PRIMARY KEY,
        match_id         INTEGER REFERENCES matches(id),
        team_id          INTEGER REFERENCES teams(id),
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS events (
        version          BIGINT
 );
 
-CREATE TABLE IF NOT EXISTS qualifiers (
+CREATE TABLE qualifiers (
        id               SERIAL PRIMARY KEY,
        event_id         INTEGER REFERENCES events(id),
        qualifier_id     INTEGER,

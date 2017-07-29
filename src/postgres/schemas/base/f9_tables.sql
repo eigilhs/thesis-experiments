@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS matches (
+CREATE TABLE matches (
        id                               INTEGER PRIMARY KEY,
        competition_id                   INTEGER REFERENCES competitions(id),
        season_id                        INTEGER REFERENCES seasons(id),
@@ -10,7 +10,6 @@ CREATE TABLE IF NOT EXISTS matches (
        matchday                         INTEGER,
        winner                           INTEGER REFERENCES teams(id),
        kickoff                          TIMESTAMP WITH TIME ZONE,
-       -- Other stuff, like officials, weather, attendance, result
        first_half_extra_start           TEXT,
        first_half_extra_stop            TEXT,
        first_half_extra_time            INTEGER,
@@ -26,7 +25,7 @@ CREATE TABLE IF NOT EXISTS matches (
        second_half_time                 INTEGER
 );
 
-CREATE TABLE IF NOT EXISTS player_results (
+CREATE TABLE player_results (
        id                               SERIAL PRIMARY KEY,
        player_id                        INTEGER REFERENCES players(id),
        match_id                         INTEGER REFERENCES matches(id),
@@ -291,7 +290,7 @@ CREATE TABLE IF NOT EXISTS player_results (
        yellow_card                      INTEGER
 );
 
-CREATE TABLE IF NOT EXISTS team_results (
+CREATE TABLE team_results (
        id                               SERIAL PRIMARY KEY,
        team_id                          INTEGER REFERENCES teams(id),
        side                             TEXT,
