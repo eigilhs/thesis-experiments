@@ -97,11 +97,11 @@ SPACE :=
 SPACE +=
 
 $P/pgstat_%_cycles.pdf: $P/pgstat_base.% $P/pgstat_jsonb.%
-	for m in $(subst $(COMMA),$(SPACE),$(EVENTS)); do \
+	for m in elapsed $(subst $(COMMA),$(SPACE),$(EVENTS)); do \
 		./generate_plots.py -o $(@D)/pgstat_$*_$$m.pdf -m $$m -l Base,JSONB $^ ; \
 	done
 $P/compstat_%_cycles.pdf: $P/pgstat_jsonb.% $P/neostat_base.%
-	for m in $(subst $(COMMA),$(SPACE),$(EVENTS)); do \
+	for m in elapsed $(subst $(COMMA),$(SPACE),$(EVENTS)); do \
 		./generate_plots.py -o $(@D)/compstat_$*_$$m.pdf -m $$m -l PostgreSQL,Neo4j $^ ; \
 	done
 

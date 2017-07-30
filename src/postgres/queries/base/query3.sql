@@ -13,7 +13,7 @@ WITH RECURSIVE possessions AS (
        AND (e.team_id = p.team_id OR p.id = p.attack_id)
 )
 SELECT count(DISTINCT p.attack_id)
-  FROM :events_1 e, possessions p
+  FROM events e, possessions p
  WHERE e.id = p.attack_id
    AND (p.sec - e.sec + (p.min - e.min)*60 >= 3
         AND p.x - (100-e.x) > 20

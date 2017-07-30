@@ -18,7 +18,7 @@ parser.add_argument('-l', '--label', required=True,
                     help='Comma separated list of x-axis labels')
 args = parser.parse_args()
 
-metrics = args.metric.split(',')
+metric = args.metric
 labels = args.label.split(',')
 outfilename = args.output
 colors = 'r', 'y', 'g', 'b', 'c', 'm'
@@ -26,18 +26,20 @@ hatches = ' ', '//', '..', '++', '\\\\', 'xx', '/', '\\', 'x', '+'
 
 data = []
 for fname in args.input:
-    means, errs, errrates = [], [], []
     with open(fname) as file:
-        h = {row[2]: (eval(row[0]), 0.01 * float(row[3].strip('%')))
+        h = {row[2]: (eval(row[0]), 0.01 * float(row[3].strip('%')), row[-2])
              for row in csv.reader(file, delimiter=';')}
-    for metric in metrics:
-        means.append(h[metric][0])
-        errs.append(h[metric][1] * means[-1])
-        errrates.append(h[metric][1])
-    data.append((means, errs, errrates))
+    if metric == 'elapsed':
+        mean = h['task-clock'][0] / float(h['task-clock'][2])
+        errrate = h['task-clock'][1]
+        err = errrate * mean
+    else:
+        mean = h[metric][0]
+        err = h[metric][1] * mean
+        errrate = h[metric][1]
+    data.append((mean, err, errrate))
 
-
-ind = np.arange(len(metrics))
+ind = 1
 width = 0.35
 
 fig, ax = plt.subplots(figsize=(3, 3))
