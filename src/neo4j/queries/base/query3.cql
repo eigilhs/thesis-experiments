@@ -1,6 +1,6 @@
 MATCH (e1:Event) -[:PRECEDED]-> (e2:Event)
 WHERE e1.team_id <> e2.team_id
-WITH DISTINCT e1, e2
+WITH e1, e2
 MATCH p = (e2:Event) -[:PRECEDED*0..]-> (e3:Event)
 WHERE ((e3.sec + e3.min*60) - (e1.sec + e1.min*60)) >= 3
       AND (e3.x - (100-e1.x)) > 20
